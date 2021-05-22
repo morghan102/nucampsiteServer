@@ -11,6 +11,26 @@ const promotionRouter = require('./routes/promotionRouter');
 const partnerRouter = require('./routes/partnerRouter');
 
 
+
+// this chunk is all we need to connect ot the mongoose server
+const mongoose = require('mongoose');
+
+const url = 'mongodb://localhost:27017/nucampsite';
+const connect = mongoose.connect(url, { //this is ezxactly what we did during the mongoose exercises
+    useCreateIndex: true,
+    useFindAndModify: false,
+    useNewUrlParser: true, 
+    useUnifiedTopology: true
+});
+
+connect.then(() => console.log('Connected correctly to server'), 
+    err => console.log(err) //this 2nd arg exists as an alternative to .catch emthod. catch is  better?
+);
+
+
+
+
+
 var app = express();
 
 // view engine setup
