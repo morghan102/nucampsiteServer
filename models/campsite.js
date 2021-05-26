@@ -18,8 +18,11 @@ const commentSchema = new Schema({
         required: true
     },
     author: {
-        type: String,
-        required: true
+        type: mongoose.Schema.Types.ObjectId, //uses mongoose population. reference to User doc
+        ref: 'User' //name of the Model for this doc
+
+        // type: String,
+        // required: true
     }
 }, { //opt
     timestamps: true //mongoose will do the createdAt & updatedAt timestamps

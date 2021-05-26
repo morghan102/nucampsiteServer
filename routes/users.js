@@ -11,26 +11,39 @@ router.get('/', function (req, res) {
   res.send('respond with a resource');
 });
 
-router.post('/signup', (req, res, next) => {
+router.post('/signup', (req, res) => {
   User.register(
     new User({ username: req.body.username }), //these are incoming from the users req
     req.body.password,
-    err => {
+    (err, user) => { //callback that recieves an err arg,can also recieve user arg which holds user doc that was created if registration was success
       if (err) {
         res.statusCode = 500;//internal server err
         res.setHeader('Content-Type', 'application/json');
         res.json({ err: err });
       } else {
-        passport.authenticate('local')(req, res, () => {
-          res.statusCode = 200;
-          res.setHeader('Content-Type', 'application/json');
-          res.json({ success: true, status: 'Registration Successful!' });
+        // added for mongoose pop
+        if (req.body.firstname) { //!!!!!!!!!!!! why we checking if theres first and lastname? shdnt there always be?
+          user.firstname = req.body.firstname;
+        }
+        if (req.body.lastname) {
+          user.lastname = req.body.lastname;
+        }
+        user.save(err => {
+          if (err) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.json({ err: err });
+            return;
+          }
+          passport.authenticate('local')(req, res, () => {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json({ success: true, status: 'Registration Successful!' });
+          });
         });
       }
     }
   );
-
-
 
   //this is all for not using passport-loc-mongoose.
   //we also removed the next from params!!
@@ -56,18 +69,18 @@ router.post('/signup', (req, res, next) => {
 });
 
 router.post('/login', passport.authenticate('local'), (req, res) => { //added the pport method & rm next for pport local use
-//the pport.auth will handle all the things our custom meth did b4
-const token = authenticate.getToken({_id: req.user._id}); //creates token for token based auth. those params is the payload
+  //the pport.auth will handle all the things our custom meth did b4
+  const token = authenticate.getToken({ _id: req.user._id }); //creates token for token based auth. those params is the payload
 
-//this is just for successful login
+  //this is just for successful login
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.json({success: true, token: token, status: 'You are successfully logged in!'}); //token prop added here to be incl in the header!
+  res.json({ success: true, token: token, status: 'You are successfully logged in!' }); //token prop added here to be incl in the header!
 
 
 
 
-//rm'ed for pport local use
+  //rm'ed for pport local use
   // if (!req.session.user) { //already logged in?
   //   const authHeader = req.headers.authorization;
 
