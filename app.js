@@ -1,12 +1,13 @@
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-var cookieParser = require('cookie-parser');
+// var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-const session = require('express-session');
-const FileStore = require('session-file-store')(session);//2 args cuz the 1st require is returning another func that takes session as a param
+// const session = require('express-session');
+// const FileStore = require('session-file-store')(session);//2 args cuz the 1st require is returning another func that takes session as a param
 const passport = require('passport');
-const authenticate = require('./authenticate');
+// const authenticate = require('./authenticate');
+const config = require('./config');
 
 
 var indexRouter = require('./routes/index');
@@ -21,7 +22,7 @@ const partnerRouter = require('./routes/partnerRouter');
 // this chunk is all we need to connect ot the mongoose server
 const mongoose = require('mongoose');
 
-const url = 'mongodb://localhost:27017/nucampsite';
+const url = config.mongoUrl;
 const connect = mongoose.connect(url, { //this is ezxactly what we did during the mongoose exercises
   useCreateIndex: true,
   useFindAndModify: false,
@@ -48,32 +49,34 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // app.use(cookieParser('12345-67890-09876-54321')); //key that makes it signed cookies. for encryption
 // can be errors if use both sessions and cookie parser bc sessions has its own cookies thing
-app.use(session({
-  name: 'session-id', // val of name dsnt matter
-  secret: '12345-67890-09876-54321',
-  saveUninitialized: false, //new sess created and no u/d made results in no u/d. and no cookie gets sent to the client. prevents empty sess files and cookies to be made
-  resave: false, //missed exactly what this does, but basically sess wont be deleted while client is still making req
-  store: new FileStore() //save sess info to servers hard disk instd of just the running app memory
-}));
+
+//      got rid of this to use token based auth
+// app.use(session({
+//   name: 'session-id', // val of name dsnt matter
+//   secret: '12345-67890-09876-54321',
+//   saveUninitialized: false, //new sess created and no u/d made results in no u/d. and no cookie gets sent to the client. prevents empty sess files and cookies to be made
+//   resave: false, //missed exactly what this does, but basically sess wont be deleted while client is still making req
+//   store: new FileStore() //save sess info to servers hard disk instd of just the running app memory
+// }));
 
 //only necess if using sessions
 app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.session());
 //put here so sers can access these routes before authentication
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-
-function auth(req, res, next) { //custom middleware. all mw must have req and res as params, next is opt
-  console.log(req.user);
-  // if (!req.signedCookies.user) { //if cookie isnt signed properly, this property will return false
-  if (!req.user) {
-    // const authHeader = req.headers.authorization; getting rid of this bc this is getting checked in user.js of models or router or ~
-    // if (!authHeader) {//if user hasnt given the authorization
-    const err = new Error('You are not authenticated!');
-    // res.setHeader('WWW-Authenticate', 'Basic');//this is being done in user router now. this is what will be sent back to client asking for auth needed
-    err.status = 401;
-    return next(err);//and it is sent here
+//    got rid of this for token based aurt instead
+// function auth(req, res, next) { //custom middleware. all mw must have req and res as params, next is opt
+//   console.log(req.user);
+//   // if (!req.signedCookies.user) { //if cookie isnt signed properly, this property will return false
+//   if (!req.user) {
+//     // const authHeader = req.headers.authorization; getting rid of this bc this is getting checked in user.js of models or router or ~
+//     // if (!authHeader) {//if user hasnt given the authorization
+//     const err = new Error('You are not authenticated!');
+//     // res.setHeader('WWW-Authenticate', 'Basic');//this is being done in user router now. this is what will be sent back to client asking for auth needed
+//     err.status = 401;
+//     return next(err);//and it is sent here
 
 
 // dont need any of this anymore!!!    (    
@@ -95,19 +98,19 @@ function auth(req, res, next) { //custom middleware. all mw must have req and re
     // })
 
 
-  } else {
-    // if (req.signedCookies.user === 'admin') {
-    // DONT NEED ANY+: if (req.session.user === 'authenticated') { //checks for this val bc thats what we set in user router for successful login
-      return next();
-    // } else {
-    //   const err = new Error('You are not authenticated!');
-    //   err.status = 401;
-    //   return next(err);
-    // }
-  }
-}
+//   } else {
+//     // if (req.signedCookies.user === 'admin') {
+//     // DONT NEED ANY+: if (req.session.user === 'authenticated') { //checks for this val bc thats what we set in user router for successful login
+//       return next();
+//     // } else {
+//     //   const err = new Error('You are not authenticated!');
+//     //   err.status = 401;
+//     //   return next(err);
+//     // }
+//   }
+// }
 
-app.use(auth); //we're putting the authentication above this so users cant access static data from the server b4 authentication
+// app.use(auth); //we're putting the authentication above this so users cant access static data from the server b4 authentication
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/campsites', campsiteRouter);

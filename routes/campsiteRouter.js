@@ -1,5 +1,6 @@
 const express = require('express');
 const Campsite = require('../models/campsite');
+const authenticate = require('../authenticate'); //we removed authentication from app.js, so adding the verifyUser to auth will do this here instd
 
 const campsiteRouter = express.Router();
 
@@ -24,7 +25,7 @@ campsiteRouter.route('/')
             // res.end('Will send all the campsites to you'); can delete this bc res.json(cs) method auto closes stream and we dont need end
             .catch(err => next(err)); //passes off error to overall error handler
     })
-    .post((req, res, next) => {
+    .post(authenticate.verifyUser, (req, res, next) => { //must be authnenticated to access any of these endpts
         Campsite.create(req.body) //body will have the campsite info from the clienyt. express json middleware will have already parsed it into a format we can work w
             //thru the create method, mongoose will already have checked that the info fits the schema we defined
             .then(campsite => {
@@ -36,11 +37,11 @@ campsiteRouter.route('/')
             .catch(err => next(err));
 
     })
-    .put((req, res) => {
+    .put(authenticate.verifyUser, (req, res) => {
         res.statusCode = 403;
         res.end('PUT operation not supported on /campsites');
     })
-    .delete((req, res) => {
+    .delete(authenticate.verifyUser, (req, res) => {
         Campsite.deleteMany()
             .then(response => {// response will hold info abt how many docs were deleted
                 res.statusCode = 200;
@@ -71,11 +72,11 @@ campsiteRouter.route('/:campsiteId')
             .catch(err => next(err));
         // res.end(`Will send ${req.params.campsiteId} campsite to you.`);
     })
-    .post((req, res) => {
+    .post(authenticate.verifyUser, (req, res) => {
         res.statusCode = 403;
         res.end(`POST operation not supported on /campsites/${req.params.campsiteId}`);
     })
-    .put((req, res) => {
+    .put(authenticate.verifyUser, (req, res) => {
         Campsite.findByIdAndUpdate(req.params.campsiteId, {
             $set: req.body
         }, { new: true })
@@ -86,7 +87,7 @@ campsiteRouter.route('/:campsiteId')
             })
             .catch(err => next(err));
     })
-    .delete((req, res) => {
+    .delete(authenticate.verifyUser, (req, res) => {
         Campsite.findByIdAndDelete(req.params.campsiteId)
             .then(response => {
                 res.statusCode = 200;
@@ -99,7 +100,7 @@ campsiteRouter.route('/:campsiteId')
 
 
 campsiteRouter.route('/:campsiteId/comments')
-    .get((req, res, next) => {
+    .get(authenticate.verifyUser, (req, res, next) => {
         Campsite.findById(req.params.campsiteId)
             .then(campsite => {
                 if (campsite) {
@@ -114,7 +115,7 @@ campsiteRouter.route('/:campsiteId/comments')
             })
             .catch(err => next(err));
     })
-    .post((req, res, next) => {
+    .post(authenticate.verifyUser, (req, res, next) => {
         Campsite.findById(req.params.campsiteId)
             .then(campsite => {
                 if (campsite) {
@@ -134,11 +135,11 @@ campsiteRouter.route('/:campsiteId/comments')
             })
             .catch(err => next(err));
     })
-    .put((req, res) => {
+    .put(authenticate.verifyUser, (req, res) => {
         res.statusCode = 403;
         res.end(`PUT operation not supported on /campsites/${req.params.campsiteId}/comments`);
     })
-    .delete((req, res, next) => {
+    .delete(authenticate.verifyUser, (req, res, next) => {
         Campsite.findById(req.params.campsiteId)
             .then(campsite => {
                 if (campsite) {
@@ -181,11 +182,11 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
             })
             .catch(err => next(err));
     })
-    .post((req, res) => {
+    .post(authenticate.verifyUser, (req, res) => {
         res.statusCode = 403;
         res.end(`POST operation not supported on /campsites/${req.params.campsiteId}/comments/${req.params.commentId}`);
     })
-    .put((req, res, next) => {
+    .put(authenticate.verifyUser, (req, res, next) => {
         Campsite.findById(req.params.campsiteId)
             .then(campsite => {
                 if (campsite && campsite.comments.id(req.params.commentId)) {
@@ -214,7 +215,7 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
             })
             .catch(err => next(err));
     })
-    .delete((req, res, next) => {
+    .delete(authenticate.verifyUser, (req, res, next) => {
         Campsite.findById(req.params.campsiteId)
             .then(campsite => {
                 if (campsite && campsite.comments.id(req.params.commentId)) {

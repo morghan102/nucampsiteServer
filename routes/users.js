@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/user');
 const passport = require('passport');
+const authenticate = require('../authenticate');
 
 
 const router = express.Router();
@@ -56,11 +57,12 @@ router.post('/signup', (req, res, next) => {
 
 router.post('/login', passport.authenticate('local'), (req, res) => { //added the pport method & rm next for pport local use
 //the pport.auth will handle all the things our custom meth did b4
+const token = authenticate.getToken({_id: req.user._id}); //creates token for token based auth. those params is the payload
 
 //this is just for successful login
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.json({success: true, status: 'You are successfully logged in!'});
+  res.json({success: true, token: token, status: 'You are successfully logged in!'}); //token prop added here to be incl in the header!
 
 
 
