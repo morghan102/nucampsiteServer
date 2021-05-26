@@ -5,6 +5,9 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);//2 args cuz the 1st require is returning another func that takes session as a param
+const passport = require('passport');
+const authenticate = require('./authenticate');
+
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -53,15 +56,18 @@ app.use(session({
   store: new FileStore() //save sess info to servers hard disk instd of just the running app memory
 }));
 
+//only necess if using sessions
+app.use(passport.initialize());
+app.use(passport.session());
 //put here so sers can access these routes before authentication
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 
 function auth(req, res, next) { //custom middleware. all mw must have req and res as params, next is opt
-  console.log(req.session);//sess mw auto adds a session prop to req
+  console.log(req.user);
   // if (!req.signedCookies.user) { //if cookie isnt signed properly, this property will return false
-  if (!req.session.user) {
+  if (!req.user) {
     // const authHeader = req.headers.authorization; getting rid of this bc this is getting checked in user.js of models or router or ~
     // if (!authHeader) {//if user hasnt given the authorization
     const err = new Error('You are not authenticated!');
@@ -91,13 +97,13 @@ function auth(req, res, next) { //custom middleware. all mw must have req and re
 
   } else {
     // if (req.signedCookies.user === 'admin') {
-    if (req.session.user === 'authenticated') { //checks for this val bc thats what we set in user router for successful login
+    // DONT NEED ANY+: if (req.session.user === 'authenticated') { //checks for this val bc thats what we set in user router for successful login
       return next();
-    } else {
-      const err = new Error('You are not authenticated!');
-      err.status = 401;
-      return next(err);
-    }
+    // } else {
+    //   const err = new Error('You are not authenticated!');
+    //   err.status = 401;
+    //   return next(err);
+    // }
   }
 }
 
