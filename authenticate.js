@@ -20,8 +20,8 @@ passport.deserializeUser(User.deserializeUser()); //after auth, user data is tak
 
 ///////////////////////////////////////////////////////////////
 
-exports.getToken = function(user) {//user obj will contain an id for user doc
-    return jwt.sign(user, config.secretKey, {expiresIn: 3600});
+exports.getToken = function (user) {//user obj will contain an id for user doc
+    return jwt.sign(user, config.secretKey, { expiresIn: 3600 });
     // sign is part of jwt api will take these args
 };
 
@@ -35,7 +35,7 @@ exports.jwtPassport = passport.use(
         opts, //obj we created above w config options
         (jwt_payload, done) => { //verify callback func. pretty much same as in jwt-payload docs. done is a callback func written in pport-jwt module
             console.log('JWT payload:', jwt_payload);
-            User.findOne({_id: jwt_payload._id}, (err, user) => { //find user
+            User.findOne({ _id: jwt_payload._id }, (err, user) => { //find user
                 if (err) {
                     return done(err, false); //done will access user doc so ti can load info from it to the req obj
                 } else if (user) {
@@ -47,5 +47,14 @@ exports.jwtPassport = passport.use(
         }
     )
 );
+exports.verifyUser = passport.authenticate('jwt', { session: false }); //part of tokens too
 
-exports.verifyUser = passport.authenticate('jwt', {session: false}); //part of tokens too
+exports.verifyAdmin = (req, res, next) => {
+    if (req.user.admin) {
+        return next();
+    } else {
+        const err = new Error("You are not authorized to perform this operation");
+        err.status = 403;
+        return next(err);
+    };
+};

@@ -8,7 +8,15 @@ const router = express.Router();
 
 /* GET users listing. */
 router.get('/', function (req, res) {
-  res.send('respond with a resource');
+ if (req.users.admin) {
+    User.find() //i thought we wouldnt need anything after the find
+    .then((users) => {
+      res.status = 200;
+      res.setHeader('Content-Type', 'application/json');//tells client or server which type of content it is
+      res.json(users);
+    })
+    .catch(err =>next(err));
+  }
 });
 
 router.post('/signup', (req, res) => {
