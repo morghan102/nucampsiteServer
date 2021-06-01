@@ -15,7 +15,7 @@ var usersRouter = require('./routes/users');
 const campsiteRouter = require('./routes/campsiteRouter');
 const promotionRouter = require('./routes/promotionRouter');
 const partnerRouter = require('./routes/partnerRouter');
-
+const uploadRouter = require('./routes/uploadRouter');
 
 
 
@@ -76,6 +76,7 @@ app.use(passport.initialize());
 //put here so sers can access these routes before authentication
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/imageUpload', uploadRouter);
 
 //    got rid of this for token based aurt instead
 // function auth(req, res, next) { //custom middleware. all mw must have req and res as params, next is opt
