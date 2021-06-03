@@ -42,7 +42,7 @@ campsiteRouter.route('/')
         res.statusCode = 403;
         res.end('PUT operation not supported on /campsites');
     })
-    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
+    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Campsite.deleteMany()
             .then(response => {// response will hold info abt how many docs were deleted
                 res.statusCode = 200;
@@ -63,7 +63,7 @@ campsiteRouter.route('/:campsiteId')
     //     res.setHeader('Content-Type', 'text/plain');
     //     next();
     // })
-    .get((req, res) => {
+    .get((req, res, next) => {
         Campsite.findById(req.params.campsiteId)
             .populate('comments.author')
             .then(campsite => {
@@ -78,7 +78,7 @@ campsiteRouter.route('/:campsiteId')
         res.statusCode = 403;
         res.end(`POST operation not supported on /campsites/${req.params.campsiteId}`);
     })
-    .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
+    .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Campsite.findByIdAndUpdate(req.params.campsiteId, {
             $set: req.body
         }, { new: true })
@@ -89,7 +89,7 @@ campsiteRouter.route('/:campsiteId')
             })
             .catch(err => next(err));
     })
-    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
+    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Campsite.findByIdAndDelete(req.params.campsiteId)
             .then(response => {
                 res.statusCode = 200;
@@ -196,7 +196,7 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
             .then(campsite => {
                 // if (req.user._id === req.params.commentId)
                 if (campsite && campsite.comments.id(req.params.commentId)) { //finds the campsite comment
-                    if (campsite.comments.id(req.params.commentId).author._id.equals(req.user._id)) { //checks if author of the comment is the same as the one trying to change it
+                    if((campsite.comments.id(req.params.commentId).author._id).equals(req.user._id)) {//checks if author of the comment is the same as the one trying to change it
                         if (req.body.rating) {
                             campsite.comments.id(req.params.commentId).rating = req.body.rating;
                         }
@@ -213,7 +213,7 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
                     } else {
                         err = new Error("You are not the author of this comment");
                         err.status = 403;     
-                        return next(error);
+                        return next(err);
                     }
                 } else if (!campsite) {
                     err = new Error(`Campsite ${req.params.campsiteId} not found`);
@@ -231,7 +231,7 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
         Campsite.findById(req.params.campsiteId)
             .then(campsite => {
                 if (campsite && campsite.comments.id(req.params.commentId)) {
-                    if (campsite.comments.id(req.params.commentId).author._id.equals(req.user._id)) { //checks if author of the comment is the same as the one trying to change it
+                    if((campsite.comments.id(req.params.commentId).author._id).equals(req.user._id)) { //checks if author of the comment is the same as the one trying to change it
                     campsite.comments.id(req.params.commentId).remove();
                     campsite.save()
                         .then(campsite => {
@@ -243,7 +243,7 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
                     } else {
                         err = new Error("You are not the author of this comment");
                         err.status = 403;     
-                        return next(error);
+                        return next(err);
                     }
                 } else if (!campsite) {
                     err = new Error(`Campsite ${req.params.campsiteId} not found`);
