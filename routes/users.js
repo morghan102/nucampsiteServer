@@ -2,12 +2,13 @@ const express = require('express');
 const User = require('../models/user');
 const passport = require('passport');
 const authenticate = require('../authenticate');
+const cors = require('./cors');
 
 
 const router = express.Router();
 
 /* GET users listing. */
-router.get('/', function (req, res) {
+router.get('/', cors.corsWithOptions, function (req, res) {//the vid has auth.vU & auth.vA. meybs this is my issue?
  if (req.users.admin) {
     User.find() //i thought we wouldnt need anything after the find
     .then((users) => {
@@ -19,7 +20,7 @@ router.get('/', function (req, res) {
   }
 });
 
-router.post('/signup', (req, res) => {
+router.post('/signup', cors.corsWithOptions, (req, res) => {
   User.register(
     new User({ username: req.body.username }), //these are incoming from the users req
     req.body.password,
@@ -76,7 +77,7 @@ router.post('/signup', (req, res) => {
   // .catch(err => next(err));// if find1 returns rejected prom
 });
 
-router.post('/login', passport.authenticate('local'), (req, res) => { //added the pport method & rm next for pport local use
+router.post('/login', cors.corsWithOptions, passport.authenticate('local'), (req, res) => { //added the pport method & rm next for pport local use
   //the pport.auth will handle all the things our custom meth did b4
   const token = authenticate.getToken({ _id: req.user._id }); //creates token for token based auth. those params is the payload
 
@@ -129,7 +130,7 @@ router.post('/login', passport.authenticate('local'), (req, res) => { //added th
 });
 
 //logout
-router.get('/logout', (req, res, next) => {
+router.get('/logout', cors.corsWithOptions, (req, res, next) => {
   if (req.session) {
     req.session.destroy();
     res.clearCookie('session-id');
