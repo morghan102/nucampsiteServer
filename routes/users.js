@@ -8,16 +8,14 @@ const cors = require('./cors');
 const router = express.Router();
 
 /* GET users listing. */
-router.get('/', cors.corsWithOptions, function (req, res) {//the vid has auth.vU & auth.vA. meybs this is my issue?
- if (req.users.admin) {
-    User.find() //i thought we wouldnt need anything after the find
-    .then((users) => {
-      res.status = 200;
-      res.setHeader('Content-Type', 'application/json');//tells client or server which type of content it is
+router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+  User.find()
+  .then((users) => {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
       res.json(users);
-    })
-    .catch(err =>next(err));
-  }
+  })
+  .catch(err => next(err));
 });
 
 router.post('/signup', cors.corsWithOptions, (req, res) => {
