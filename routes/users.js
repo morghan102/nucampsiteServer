@@ -140,5 +140,15 @@ router.get('/logout', cors.corsWithOptions, (req, res, next) => {
   }
 });
 
+//THIS IS FOR OAUTH 3RD PARTY
+//this is where we handle the rtesponse to the client after auth is completed using the access token
+router.get('/facebook/token', passport.authenticate('facebook-token'), (req, res) => {//fb-token makes it so this uses the strategy we made in authenticate.js
+  if (req.user) {//if it worked (login/signup) pport will add a user property to req obj
+      const token = authenticate.getToken({_id: req.user._id}); //new json web token
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.json({success: true, token: token, status: 'You are successfully logged in!'});
+  }
+});
 
 module.exports = router;
